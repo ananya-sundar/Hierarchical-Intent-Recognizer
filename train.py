@@ -1,6 +1,4 @@
 
-#from argparse import ArgumentParser
-
 import torch
 from torch import nn
 
@@ -22,7 +20,6 @@ def train():
     set_seed()
 
     train_loader, num_domains, num_intents = get_iterator(data_path + '/train.csv', train_batch_size, device, train=True)
-    #train_loader, num_scopes, num_intents = get_iterator(data_path + '/train.csv', train_batch_size, device, train=True)
     val_loader = get_iterator(data_path + '/valid.csv', val_batch_size, device)
 
     config = BertConfig.from_pretrained(pretrained)
@@ -52,15 +49,13 @@ def train():
         x_text, y_domain, y_intent = batch.text, batch.domain, batch.intent
         y_pred_domain, y_pred_intent = model(x_text)
         
-        #x_text, y_scope, y_intent = batch.text, batch.scope, batch.intent
-        #y_pred_scope, y_pred_intent = model(x_text)
         
         domain_loss = criterion(y_pred_domain, y_domain)
-        #scope_loss = criterion(y_pred_scope, y_scope)
+      
         intent_loss = criterion(y_pred_intent, y_intent)
 
         loss = mtl_instance(domain_loss, intent_loss)
-        #loss = mtl_instance(scope_loss, intent_loss)
+     
 
         if fp16:
             with amp.scale_loss(loss, optimizer) as scaled_loss:
@@ -83,11 +78,9 @@ def train():
             x_text, y_domain, y_intent = batch.text, batch.domain, batch.intent
             y_pred_domain, y_pred_intent = model(x_text)
             
-            #x_text, y_scope, y_intent = batch.text, batch.scope, batch.intent
-            #y_pred_scope, y_pred_intent = model(x_text)
             
             return {'domain': (y_pred_domain, y_domain), 'intent': (y_pred_intent, y_intent)}
-            #return {'scope': (y_pred_scope, y_scope), 'intent': (y_pred_intent, y_intent)}
+          
 
 
     trainer = Engine(update)
@@ -104,10 +97,10 @@ def train():
     
     def attach_metrics(evaluator):
         Accuracy(output_transform=lambda out: out['domain']).attach(evaluator, 'domain_acc')
-        #Accuracy(output_transform=lambda out: out['scope']).attach(evaluator, 'domain_acc')
+        
         Accuracy(output_transform=lambda out: out['intent']).attach(evaluator, 'intent_acc')
         Loss(criterion, output_transform=lambda out: out['domain']).attach(evaluator, 'domain_loss')
-        #Loss(criterion, output_transform=lambda out: out['scope']).attach(evaluator, 'domain_loss')
+       
         Loss(criterion, output_transform=lambda out: out['intent']).attach(evaluator, 'intent_loss')
 
     attach_metrics(train_evaluator)
@@ -125,13 +118,6 @@ def train():
         
         return metrics['domain_acc'], metrics['domain_loss'],metrics['intent_acc'], metrics['intent_loss']
             
-#        pbar.log_message(
-#            "{} - Epoch: {}  domain acc/loss: {:.4f}/{:.4f}, intent acc/loss: {:.4f}/{:.4f}".format(
-#                msg_type, epoch, metrics['domain_acc'], metrics['domain_loss'],
-#                metrics['intent_acc'], metrics['intent_loss']
-#            )
-#        )
-
 
     #@trainer.on(Events.EPOCH_COMPLETED)
     def log_training_results(engine):
@@ -188,11 +174,10 @@ def train():
     
 
 if __name__ == "__main__":
-    #parser = ArgumentParser()
     data_path ="dataset/"
     train_batch_size=32 #help="input batch size for training (default: 32)")
     val_batch_size=32 #help="input batch size for validation (default: 32)")
-    epochs=50 #help="number of epochs to train (default: 10)")
+    epochs=21 #help="number of epochs to train (default: 10)")
     patience=10 #help="number of more epochs before early stopping")
     n_saved=1 # help="number of models saved")
     lr=4.00E-05 # help="learning rate")
@@ -205,8 +190,7 @@ if __name__ == "__main__":
     subspace='false' #help="use subspace layers")
     hierarchy='true'# help="use hierarchical structure")
     domain_first='false' #help="domain representation first")
-    
-    #args = parser.parse_args()
+
     subspace = str2bool(subspace)
     hierarchy = str2bool(hierarchy)
     domain_first = str2bool(domain_first)
