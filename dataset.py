@@ -32,33 +32,30 @@ def init_fields():
                       unk_token=unk_token_idx)
 
     DOMAIN = data.LabelField(dtype=torch.long, batch_first=True)
-    #SCOPE = data.LabelField(dtype=torch.long, batch_first=True)
+  
     INTENT = data.LabelField(dtype=torch.long, batch_first=True)
 
     FIELDS = [('text', TEXT), ('domain', DOMAIN), ('intent', INTENT)]
-    #FIELDS = [('text', TEXT), ('scope', SCOPE), ('intent', INTENT)]
     
     return FIELDS, DOMAIN, INTENT
-    #return FIELDS, SCOPE, INTENT
+   
 
 
 def get_iterator(file_path, batch_size, device, train=False):
     FIELDS, DOMAIN, INTENT = init_fields()
-    #FIELDS, SCOPE, INTENT = init_fields()
+    
 
     if train:
         dataset = data.TabularDataset(path=file_path, format='csv', fields=FIELDS, skip_header=True)
         DOMAIN.build_vocab(dataset)
-        #SCOPE.build_vocab(dataset)
+        
         INTENT.build_vocab(dataset)
 
         #No. of unique tokens in label
         print("Size of scope vocabulary:", len(DOMAIN.vocab))
         torch.save(DOMAIN.vocab, 'scope_vocab.pkl')
         
-        #print("Size of scope vocabulary:", len(SCOPE.vocab))
-        #torch.save(SCOPE.vocab, 'scope_vocab.pkl')
-        
+      
         
         print("Size of intent vocabulary:", len(INTENT.vocab))
         torch.save(INTENT.vocab, 'intent_vocab.pkl')
@@ -67,7 +64,7 @@ def get_iterator(file_path, batch_size, device, train=False):
         #iterator = data.Iterator(dataset, batch_size, device=device, repeat=True, train=True, shuffle=True, sort=True,
         #                         sort_key=lambda x: len(x.text), sort_within_batch=True)
         return iterator, len(DOMAIN.vocab), len(INTENT.vocab)
-        #return iterator, len(SCOPE.vocab), len(INTENT.vocab)
+       
     
     else:
         #DOMAIN.vocab = load_vocab('domain_vocab.pkl')
@@ -79,20 +76,17 @@ def get_iterator(file_path, batch_size, device, train=False):
 
 
 if __name__ == '__main__':
-    #train_iter, _, _ = get_iterator('dataset/oos_full/train.csv', 32, 'cuda', train=True)
-    #valid_iter = get_iterator('dataset/oos_full/valid.csv', 32, 'cuda', train=False)
+
     train_iter, _, _ = get_iterator('dataset/train.csv', 32, 'cuda', train=True)
     valid_iter = get_iterator('dataset/valid.csv', 32, 'cuda', train=False)
     for batch in train_iter:
         print(batch.text)
         print(batch.domain)
-        #print(batch.scope)
         print(batch.intent)
         break
 
     for batch in valid_iter:
         print(batch.text)
         print(batch.domain)
-        #print(batch.scope)
         print(batch.intent)
         break
