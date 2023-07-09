@@ -67,7 +67,7 @@ def get_iterator(file_path, batch_size, device, train=False):
        
     
     else:
-        #DOMAIN.vocab = load_vocab('domain_vocab.pkl')
+        
         DOMAIN.vocab = load_vocab('scope_vocab.pkl')
         INTENT.vocab = load_vocab('intent_vocab.pkl')
         dataset = data.TabularDataset(path=file_path, format='csv', fields=FIELDS, skip_header=True)
